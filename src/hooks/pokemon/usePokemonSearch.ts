@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 interface Pokemon {
-  id: number;
+  id: string;
   name: string;
   ability?: string;
   type?: string;
@@ -9,25 +9,29 @@ interface Pokemon {
 }
 
 export const usePokemonSearch = () => {
-  const [pokemon, setPokemon] = useState<Pokemon | null>(null);
+  const [pokemons, setPokemons] = useState<Pokemon[] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const searchPokemon = async (query: string): Promise<void> => {
-    if (!query.trim()) return;
+  const searchPokemon = async (query?: string): Promise<void> => {
+    // No permitir búsquedas vacías
+    if (!query || !query.trim()) {
+      return;
+    }
 
     setLoading(true);
     setError(null);
 
     try {
       const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-      const response = await fetch(
-        `${API_URL}/pokemons/${query.toLowerCase()}`
-      );
+
+      const url = `${API_URL}/pokemons?search=${encodeURIComponent(query)}`;
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error("Pokémon no encontrado");
+          throw new Error("Pokémon not found");
         }
         throw new Error(`Error ${response.status}`);
       }
@@ -35,23 +39,49 @@ export const usePokemonSearch = () => {
       const responseText = await response.text();
       console.log("Response TEXT:", responseText);
 
-      const data = JSON.parse(responseText); // Parseamos manualmente
-      console.log("Data parseada:", data);
-      setPokemon(data);
+      const data = JSON.parse(responseText);
+      console.log("Data:", data);
+
+      setPokemons(Array.isArray(data) ? data : []);
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Error desconocido";
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
-      setPokemon(null);
+      setPokemons([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getAllPokemons = async (): Promise<void> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      const url = `${API_URL}/pokemons`;
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}`);
+      }
+
+      const data = await response.json();
+      setPokemons(Array.isArray(data) ? data : []);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(errorMessage);
+      setPokemons([]);
     } finally {
       setLoading(false);
     }
   };
 
   return {
-    pokemon,
+    pokemons,
     loading,
     error,
     searchPokemon,
+    getAllPokemons,
   };
 };
