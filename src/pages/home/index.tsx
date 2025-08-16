@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { usePokemonSearch } from "../../hooks/pokemon/usePokemonSearch";
@@ -8,12 +9,17 @@ import PokemonGrid from "../../components/pokemon/PokemonGrid";
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const { pokemons, loading, error, searchPokemon } = usePokemonSearch();
+  const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchTerm.trim()) return;
 
     searchPokemon(searchTerm);
+  };
+
+  const handleCreatePokemon = () => {
+    navigate("/pokemon/create");
   };
 
   return (
@@ -23,7 +29,7 @@ const Home = () => {
 
         <form
           onSubmit={handleSearch}
-          className="flex gap-2 mb-8 max-w-2xl mx-auto"
+          className="flex gap-2 mb-4 max-w-2xl mx-auto"
         >
           <Input
             type="text"
@@ -34,12 +40,22 @@ const Home = () => {
           />
           <Button
             type="submit"
-            className="bg-red-600 text-white"
+            className="bg-red-600 text-white hover:bg-red-700"
             disabled={loading || !searchTerm.trim()}
           >
             {loading ? "Loading..." : <Search className="h-4 w-4" />}
           </Button>
         </form>
+
+        <div className="text-center mb-8">
+          <Button
+            onClick={handleCreatePokemon}
+            className="bg-red-600 text-white hover:bg-red-700"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create Pokémon
+          </Button>
+        </div>
 
         {/* Error */}
         {error && (

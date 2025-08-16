@@ -1,7 +1,7 @@
-// App.tsx con React Router
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/home";
 import PokemonDetail from "./pages/pokemon_details";
+import CreatePokemon from "./pages/create_pokemon";
 
 function App() {
   return (
@@ -9,6 +9,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/pokemon/:id" element={<PokemonDetail />} />
+        <Route path="/pokemon/create" element={<CreatePokemon />} />
       </Routes>
     </Router>
   );

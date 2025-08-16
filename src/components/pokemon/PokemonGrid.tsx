@@ -1,10 +1,11 @@
-import React from "react";
 import PokemonCard from "./PokemonCard";
 
 interface Pokemon {
   id: string;
   name: string;
-  type?: string;
+  number?: number;
+  types?: string[];
+  imageUrl?: string;
 }
 
 interface PokemonGridProps {
