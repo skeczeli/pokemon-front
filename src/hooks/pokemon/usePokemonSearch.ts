@@ -14,7 +14,6 @@ export const usePokemonSearch = () => {
   const [error, setError] = useState<string | null>(null);
 
   const searchPokemon = async (query?: string): Promise<void> => {
-    // No permitir búsquedas vacías
     if (!query || !query.trim()) {
       return;
     }
