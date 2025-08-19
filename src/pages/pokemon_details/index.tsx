@@ -1,22 +1,15 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Trash2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Edit } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { usePokemonById } from "../../hooks/pokemon/usePokemonById";
 import { useDeletePokemon } from "../../hooks/pokemon/useDeletePokemon";
+import { useUpdatePokemon } from "../../hooks/pokemon/useUpdatePokemon";
+import PokemonDisplayCard from "@/components/pokemon/PokemonDisplayCard";
+import DeleteAlert from "@/components/pokemon/DeleteAlert";
+import { PokemonEditForm } from "@/components/pokemon/PokemonEditForm";
+import type { CreatePokemonData } from "../../types/pokemon";
 
 const PokemonDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +20,14 @@ const PokemonDetail = () => {
     loading: deleteLoading,
     error: deleteError,
   } = useDeletePokemon();
+  const {
+    updatePokemon,
+    loading: updateLoading,
+    error: updateError,
+  } = useUpdatePokemon();
+
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleBack = () => {
     navigate(-1);
@@ -39,7 +39,24 @@ const PokemonDetail = () => {
     const success = await deletePokemon(id);
     if (success) {
       setIsDeleteDialogOpen(false);
-      navigate(-1); // Volver a la lista después de eliminar
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleSave = async (data: CreatePokemonData) => {
+    if (!id) return;
+
+    const success = await updatePokemon(id, data);
+    if (success) {
+      setIsEditing(false);
+      navigate(`/`); // cheap solution al problema de reload. Dsp averigüo cómo usar tanStack query
     }
   };
 
@@ -71,7 +88,7 @@ const PokemonDetail = () => {
       </div>
     );
   }
-  //TODO: Extract alert as component
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto pt-20">
@@ -81,49 +98,29 @@ const PokemonDetail = () => {
             Back
           </Button>
 
-          <AlertDialog
-            open={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}
-          >
-            <AlertDialogTrigger asChild>
+          {!isEditing && (
+            <div className="flex gap-2">
               <Button
-                className="bg-red-500 hover:bg-red-600"
-                variant="destructive"
-                disabled={deleteLoading}
+                onClick={handleEdit}
+                variant="outline"
+                className="bg-blue-500 hover:bg-blue-600 text-white"
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="bg-white border border-gray-200 shadow-xl max-w-md">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-gray-900">
-                  Are you sure?
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-gray-700">
-                  This action cannot be undone. This will permanently delete{" "}
-                  <span className="font-semibold capitalize text-gray-900">
-                    {pokemon.name}
-                  </span>{" "}
-                  from the database.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300">
-                  Cancel
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  disabled={deleteLoading}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  {deleteLoading ? "Deleting..." : "Delete"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+
+              <DeleteAlert
+                isDeleteDialogOpen={isDeleteDialogOpen}
+                setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+                handleDelete={handleDelete}
+                deleteLoading={deleteLoading}
+                pokemon={pokemon}
+              />
+            </div>
+          )}
         </div>
 
+        {/* Show error messages */}
         {deleteError && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
             <p className="text-red-800 text-sm">
@@ -132,73 +129,29 @@ const PokemonDetail = () => {
           </div>
         )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl capitalize flex items-center justify-between">
-              {pokemon.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Image */}
-            {pokemon.imageUrl && (
-              <div className="flex justify-center">
-                <img
-                  src={pokemon.imageUrl}
-                  alt={pokemon.name}
-                  className="w-48 h-48 object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              </div>
-            )}
+        {updateError && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-800 text-sm">
+              Error updating Pokémon: {updateError}
+            </p>
+          </div>
+        )}
 
-            {/* info grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-gray-600">ID:</label>
-                <p className="text-lg break-all">{pokemon.id}</p>
-              </div>
-
-              {pokemon.number && (
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Number:
-                  </label>
-                  <p className="text-lg">#{pokemon.number}</p>
-                </div>
-              )}
-
-              {pokemon.types && pokemon.types.length > 0 && (
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Types:
-                  </label>
-                  <div className="flex gap-2 mt-1">
-                    {pokemon.types.map((type) => (
-                      <Badge
-                        key={type}
-                        variant="outline"
-                        className="capitalize"
-                      >
-                        {type}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {pokemon.ability && (
-                <div>
-                  <label className="text-sm font-medium text-gray-600">
-                    Ability:
-                  </label>
-                  <p className="text-lg capitalize">{pokemon.ability}</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Conditional rendering: Edit form or Display card */}
+        {isEditing ? (
+          <Card>
+            <CardContent className="p-6">
+              <PokemonEditForm
+                pokemon={pokemon}
+                onSave={handleSave}
+                onCancel={handleCancelEdit}
+                loading={updateLoading}
+              />
+            </CardContent>
+          </Card>
+        ) : (
+          <PokemonDisplayCard pokemon={pokemon} />
+        )}
       </div>
     </div>
   );

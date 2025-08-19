@@ -1,12 +1,5 @@
 import { useState } from "react";
-
-interface Pokemon {
-  id: string;
-  name: string;
-  ability?: string;
-  type?: string;
-  imageUrl?: string;
-}
+import type { Pokemon } from "../../types/pokemon";
 
 export const usePokemonSearch = () => {
   const [pokemons, setPokemons] = useState<Pokemon[] | null>(null);

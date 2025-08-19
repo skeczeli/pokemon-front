@@ -1,12 +1,5 @@
 import { useState, useCallback } from "react";
-
-interface Pokemon {
-  id: string;
-  name: string;
-  number?: number;
-  types?: string[];
-  imageUrl?: string;
-}
+import type { Pokemon } from "../../types/pokemon";
 
 export interface PokemonListParams {
   page: number;

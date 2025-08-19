@@ -4,14 +4,7 @@ import PaginationControls from "./PaginationControls";
 import PaginatedSearch from "./PaginatedSearch";
 import { usePagination } from "../../hooks/pokemon/usePagination";
 import paginationConfig from "../../config/pagination.config";
-
-interface Pokemon {
-  id: string;
-  name: string;
-  number?: number;
-  types?: string[];
-  imageUrl?: string;
-}
+import type { Pokemon } from "../../types/pokemon";
 
 export interface PaginatedListResponse<T> {
   items: T[];

@@ -1,20 +1,5 @@
 import { useState } from "react";
-
-interface CreatePokemonData {
-  name: string;
-  number: number;
-  types: string[];
-  ability: string;
-}
-
-interface Pokemon {
-  id: string;
-  name: string;
-  number?: number;
-  types?: string[];
-  ability?: string;
-  imageUrl?: string;
-}
+import type { Pokemon, CreatePokemonData } from "../../types/pokemon";
 
 export const useCreatePokemon = () => {
   const [loading, setLoading] = useState<boolean>(false);
